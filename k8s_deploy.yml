@@ -1,0 +1,21 @@
+apiVersion: extensions.istio.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: auth-wasm-plugin
+  namespace: default
+spec:
+  imagePullPolicy: Always
+  match:
+    - mode: SERVER
+  pluginConfig:
+    auth_authority: httpbin.default.svc.cluster.local
+    auth_cluster_name: outbound|80||httpbin.default.svc.cluster.local
+    auth_timeout_ms: 150
+  selector:
+    matchLabels:
+      app: helloworld
+  url: oci://docker.io/shender/wasmplugin:v1
+  vmConfig:
+    env:
+      - name: POD_NAMESPACE
+        valueFrom: HOST

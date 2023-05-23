@@ -1,0 +1,38 @@
+name: Lint & Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+env:
+  TINYGO_VERSION: 0.27.0
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.2
+      - name: Install TinyGO
+        run: |
+          wget -q https://github.com/tinygo-org/tinygo/releases/download/v$TINYGO_VERSION/tinygo$TINYGO_VERSION.linux-amd64.tar.gz
+          tar xvzf tinygo$TINYGO_VERSION.linux-amd64.tar.gz
+          echo "$PWD/tinygo/bin" >> $GITHUB_PATH
+      - name: Build WASM
+        run: |
+          tinygo version
+          tinygo build -o main.wasm -opt 2 -scheduler=none -target=wasi ./main.go
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          args: --skip-dirs tinygo
+      - name: Run tests
+        run: |
+          go test -v ./internal/...
+  
