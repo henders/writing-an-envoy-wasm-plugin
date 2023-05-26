@@ -12,6 +12,7 @@ const (
 	AuthTimeoutDefault = time.Second
 )
 
+// Config is used to extract any WASMPlugin configuration defined in the deployed YML
 type Config struct {
 	AuthClusterName string
 	AuthAuthority   string

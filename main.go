@@ -17,7 +17,7 @@ type vmContext struct {
 	types.DefaultVMContext
 }
 
-// NewPluginContext Override types.DefaultVMContext.
+// NewPluginContext Override types.DefaultVMContext otherwise this plugin would do nothing :)
 func (v *vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 	proxywasm.LogInfof("NewPluginContext context:%v", contextID)
 
@@ -41,7 +41,8 @@ func (h *filterContext) OnPluginStart(_ int) types.OnPluginStartStatus {
 	return types.OnPluginStartStatusOK
 }
 
-// NewHttpContext Override types.DefaultPluginContext.
+// NewHttpContext Override types.DefaultPluginContext to allow us to declare a request handler for each
+// intercepted request the Envoy Sidecar sends us
 func (h *filterContext) NewHttpContext(contextID uint32) types.HttpContext {
 	return &internal.RequestHandler{
 		Conf:      h.conf,

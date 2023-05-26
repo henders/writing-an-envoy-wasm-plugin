@@ -6,6 +6,7 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 )
 
+// Metrics - This helper object memoizes any defined metrics to save calls to the envoy host
 type Metrics struct {
 	counters   map[string]proxywasm.MetricCounter
 	histograms map[string]proxywasm.MetricHistogram
@@ -36,6 +37,8 @@ func (m *Metrics) Histogram(name string, tags [][2]string, value uint64) {
 	m.histograms[fullName].Record(value)
 }
 
+// metricName calculates the final "statsd" name of the metric which doesn't natively support tags
+// You will have to add or use pre-defined stats-tag regexs to extract any tags embedded in the statsd name.
 func metricName(name string, tags [][2]string) string {
 	fullName := fmt.Sprintf("%s_%s", MetricPrefix, name)
 
