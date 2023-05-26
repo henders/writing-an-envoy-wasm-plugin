@@ -12,7 +12,7 @@ type Metrics struct {
 	histograms map[string]proxywasm.MetricHistogram
 }
 
-const MetricPrefix = "envoy_wasm_system_auth"
+const MetricPrefix = "envoy_wasm_example"
 
 func NewMetrics() *Metrics {
 	return &Metrics{
@@ -24,6 +24,7 @@ func NewMetrics() *Metrics {
 func (m *Metrics) Increment(name string, tags [][2]string) {
 	fullName := metricName(name, tags)
 	if _, exists := m.counters[fullName]; !exists {
+		proxywasm.LogDebugf("defining counter:%s", fullName)
 		m.counters[fullName] = proxywasm.DefineCounterMetric(fullName)
 	}
 	m.counters[fullName].Increment(1)
@@ -32,6 +33,7 @@ func (m *Metrics) Increment(name string, tags [][2]string) {
 func (m *Metrics) Histogram(name string, tags [][2]string, value uint64) {
 	fullName := metricName(name, tags)
 	if _, exists := m.histograms[fullName]; !exists {
+		proxywasm.LogDebugf("defining histogram:%s", fullName)
 		m.histograms[fullName] = proxywasm.DefineHistogramMetric(fullName)
 	}
 	m.histograms[fullName].Record(value)

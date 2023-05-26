@@ -30,6 +30,8 @@ jobs:
           tinygo build -o main.wasm -opt 2 -scheduler=none -target=wasi ./main.go
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
+        with:
+          args: --skip-dirs tinygo
       - name: Run tests
         run: |
           go test -v ./...

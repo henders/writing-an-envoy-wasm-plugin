@@ -87,6 +87,11 @@ func getNamespace() string {
 	if namespace, exists := os.LookupEnv("POD_NAMESPACE"); exists {
 		return namespace
 	}
+	// Test fallback
+	if namespace, err := proxywasm.GetProperty([]string{"POD_NAMESPACE"}); err == nil {
+		return string(namespace)
+	}
+
 	proxywasm.LogWarnf("Failed to determine the namespace")
 	return ""
 }
