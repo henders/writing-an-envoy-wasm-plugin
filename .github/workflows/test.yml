@@ -27,10 +27,10 @@ jobs:
       - name: Build WASM
         run: |
           tinygo version
-          tinygo build -o main.wasm -opt 2 -scheduler=none -target=wasi ./cmd/main.go
+          tinygo build -o main.wasm -opt 2 -scheduler=none -target=wasi ./main.go
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
       - name: Run tests
         run: |
-          go test -v ./cmd/... ./internal/...
+          go test -v ./...
   
