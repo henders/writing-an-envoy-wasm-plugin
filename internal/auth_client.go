@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	XAuthServiceAuthResponseHeader = "x-auth-response-status"
+	XAuthServiceAuthResponseHeader    = "x-auth-response-status"
+	XAuthServiceAuthResponseJWTHeader = "x-auth-response-jwt"
 )
 
 type AuthClient struct {
@@ -25,7 +26,7 @@ func (d *AuthClient) RequestJWT(reqHeaders [][2]string) {
 	}
 }
 
-func (d *AuthClient) authResponse(_, bodySize, _ int) {
+func (d *AuthClient) authResponse(_, _, _ int) {
 	// We want to always resume the intercepted request regardless of success/fail to not indefinitely block anything
 	defer func() {
 		if err := proxywasm.ResumeHttpRequest(); err != nil {
@@ -46,7 +47,7 @@ func (d *AuthClient) authResponse(_, bodySize, _ int) {
 	for _, h := range headers {
 		proxywasm.LogInfof("  %s: auth response header --> %s: %s", d.XRequestID, h[0], h[1])
 		// Copy auth header onto original request headers
-		if h[0] == XAuthServiceAuthResponseHeader {
+		if h[0] == XAuthServiceAuthResponseHeader || h[0] == XAuthServiceAuthResponseJWTHeader {
 			if err := proxywasm.AddHttpRequestHeader(h[0], h[1]); err != nil {
 				proxywasm.LogCriticalf("%s: failed to add header '%v' to request: %v", d.XRequestID, h, err)
 			}

@@ -13,11 +13,7 @@ const DefaultTestConfig = `
 {
 	"auth_cluster_name": "auth", 
 	"auth_authority": "auth", 
-	"auth_timeout_ms": 5,
-	"example-service": {
-		"enabled": true,
-		"lightweight_system_auth": true
-	}
+	"auth_timeout_ms": 5
 }`
 
 func InitPlugin(t *testing.T) proxytest.WasmVMContext {
