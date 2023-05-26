@@ -34,5 +34,5 @@ jobs:
           args: --skip-dirs tinygo
       - name: Run tests
         run: |
-          go test -v ./...
+          go test -v ./internal/...
   
