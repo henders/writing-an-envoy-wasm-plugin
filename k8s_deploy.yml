@@ -1,0 +1,13 @@
+apiVersion: extensions.istio.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: auth-wasm-plugin
+  namespace: default
+spec:
+  imagePullPolicy: Always
+  match:
+    - mode: SERVER
+  selector:
+    matchLabels:
+      app: helloworld
+  url: oci://docker.io/shender/wasmplugin:v1
