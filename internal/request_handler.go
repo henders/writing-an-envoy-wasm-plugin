@@ -9,7 +9,8 @@ type RequestHandler struct {
 	// Bring in the callback functions
 	types.DefaultHttpContext
 
-	Conf *Config
+	Conf    *Config
+	Metrics *Metrics
 }
 
 const (
@@ -54,6 +55,8 @@ func headerArrayToMap(requestHeaders [][2]string) map[string]string {
 }
 
 func (r *RequestHandler) doSomethingWithRequest(reqHeaderMap map[string]string, xRequestID string) types.Action {
+	r.Metrics.Increment("requests_intercepted", [][2]string{})
+
 	// for now, let's just log all the request headers to we get an idea of what we have to work with
 	for key, value := range reqHeaderMap {
 		proxywasm.LogInfof("  %s: request header --> %s: %s", xRequestID, key, value)
@@ -61,7 +64,7 @@ func (r *RequestHandler) doSomethingWithRequest(reqHeaderMap map[string]string, 
 
 	// if auth header exists, call out to auth-service to request JWT
 	if _, exists := reqHeaderMap[AuthHeader]; exists {
-		authClient := AuthClient{XRequestID: xRequestID, Conf: r.Conf}
+		authClient := AuthClient{XRequestID: xRequestID, Conf: r.Conf, Metrics: r.Metrics}
 		authClient.RequestJWT(reqHeaderMap)
 		// We need to tell Envoy to block this request until we get a response from the Auth Service
 		return types.ActionPause

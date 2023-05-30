@@ -14,7 +14,7 @@ spec:
   selector:
     matchLabels:
       app: helloworld
-  url: oci://docker.io/shender/wasmplugin:v3
+  url: oci://docker.io/shender/wasmplugin:v4
   vmConfig:
     env:
       - name: POD_NAMESPACE
