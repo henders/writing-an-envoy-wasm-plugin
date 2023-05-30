@@ -8,6 +8,8 @@ import (
 type RequestHandler struct {
 	// Bring in the callback functions
 	types.DefaultHttpContext
+
+	Conf *Config
 }
 
 const (
@@ -59,7 +61,7 @@ func (r *RequestHandler) doSomethingWithRequest(reqHeaderMap map[string]string, 
 
 	// if auth header exists, call out to auth-service to request JWT
 	if _, exists := reqHeaderMap[AuthHeader]; exists {
-		authClient := AuthClient{XRequestID: xRequestID}
+		authClient := AuthClient{XRequestID: xRequestID, Conf: r.Conf}
 		authClient.RequestJWT(reqHeaderMap)
 		// We need to tell Envoy to block this request until we get a response from the Auth Service
 		return types.ActionPause
