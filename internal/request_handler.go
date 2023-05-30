@@ -12,6 +12,7 @@ type RequestHandler struct {
 
 const (
 	XRequestIdHeader = "x-request-id"
+	AuthHeader       = "authorization"
 )
 
 // OnHttpRequestHeaders is called on every request we intercept with this WASM filter
@@ -56,6 +57,15 @@ func (r *RequestHandler) doSomethingWithRequest(reqHeaderMap map[string]string, 
 		proxywasm.LogInfof("  %s: request header --> %s: %s", xRequestID, key, value)
 	}
 
-	// Forward request to upstream service, i.e. unblock request
+	// if auth header exists, call out to auth-service to request JWT
+	if _, exists := reqHeaderMap[AuthHeader]; exists {
+		authClient := AuthClient{XRequestID: xRequestID}
+		authClient.RequestJWT(reqHeaderMap)
+		// We need to tell Envoy to block this request until we get a response from the Auth Service
+		return types.ActionPause
+	}
+
+	// If there was no authentication header to operate on, then
+	// forward request to upstream service, i.e. unblock request
 	return types.ActionContinue
 }
