@@ -55,7 +55,7 @@ func headerArrayToMap(requestHeaders [][2]string) map[string]string {
 }
 
 func (r *RequestHandler) doSomethingWithRequest(reqHeaderMap map[string]string, xRequestID string) types.Action {
-	r.Metrics.Increment("requests_intercepted", [][2]string{})
+	r.Metrics.Increment("requests_intercepted", [][2]string{{"destination_namespace", r.Conf.Namespace}})
 
 	// for now, let's just log all the request headers to we get an idea of what we have to work with
 	for key, value := range reqHeaderMap {
