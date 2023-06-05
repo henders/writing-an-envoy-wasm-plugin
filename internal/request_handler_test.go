@@ -11,61 +11,51 @@ func TestRequestContext_OnHttpRequestHeaders(t *testing.T) {
 	tests := []struct {
 		name         string
 		headers      [][2]string
-		conf         string
 		wantResponse types.Action
-		wantHeaders  [][2]string
 		wantAuthCall bool
 	}{
 		{
 			name:         "Empty headers",
 			headers:      [][2]string{},
-			conf:         DefaultTestConfig,
 			wantAuthCall: false,
-			wantHeaders:  [][2]string{},
 			wantResponse: types.ActionContinue,
 		},
 		{
-			name: "No auth headers",
-			headers: [][2]string{
-				{XRequestIdHeader, "abc"},
-			},
-			conf:         DefaultTestConfig,
+			name:         "No auth headers",
+			headers:      [][2]string{{XRequestIdHeader, "abc"}},
 			wantAuthCall: false,
-			wantHeaders:  [][2]string{{"x-request-id", "abc"}},
 			wantResponse: types.ActionContinue,
 		},
 		{
-			name: "authorization header present",
-			headers: [][2]string{
-				{XRequestIdHeader, "abc"},
-				{AuthHeader, "MAC <some mac digest>"},
-			},
-			conf:         DefaultTestConfig,
+			name:         "authorization header present",
+			headers:      [][2]string{{XRequestIdHeader, "abc"}, {AuthHeader, "MAC <some mac digest>"}},
 			wantAuthCall: true,
-			wantHeaders: [][2]string{
-				{"x-request-id", "abc"},
-				{AuthHeader, "MAC <some mac digest>"},
-			},
 			wantResponse: types.ActionPause,
 		},
 	}
 
+	// Load the WASM binary and initialize a bare state for all the proxywasm APIs to work
 	vmContext := InitPlugin(t)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Initialize new plugin
-			host, contextID, reset := NewContextWithConfig(t, vmContext, tt.conf)
+			// Initialize new plugin context like Envoy would do before intercepting a request
+			host, contextID, reset := NewContext(t, vmContext)
+
+			// We want to reset the state of our 'Envoy Host' after every test
 			defer reset()
 
-			// Call OnRequestHeaders
+			// Instruct the 'Envoy Host' to call our WASM OnHttpRequestHeaders callback
 			action := host.CallOnRequestHeaders(contextID, tt.headers, true)
+
+			// Now we just validate that all the side-effects match expectations
 			require.Equal(t, tt.wantResponse, action)
-			require.Equal(t, tt.wantHeaders, host.GetCurrentRequestHeaders(contextID))
+			require.Equal(t, tt.headers, host.GetCurrentRequestHeaders(contextID))
 			if tt.wantAuthCall {
 				// Verify auth service is called.
-				require.Equal(t, 1, len(host.GetCalloutAttributesFromContext(contextID)))
+				require.Len(t, host.GetCalloutAttributesFromContext(contextID), 1)
 			} else {
-				require.Equal(t, 0, len(host.GetCalloutAttributesFromContext(contextID)))
+				require.Empty(t, host.GetCalloutAttributesFromContext(contextID))
 			}
 		})
 	}
