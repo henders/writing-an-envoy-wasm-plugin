@@ -34,6 +34,7 @@ func (d *AuthClient) RequestJWT(origReqHeaders map[string]string) {
 	)
 	if err != nil {
 		proxywasm.LogCriticalf("%s: failed to call AuthService: %v", d.XRequestID, err)
+		// We want to resume the intercepted request even if we couldn't get an authentication header
 		_ = proxywasm.ResumeHttpRequest()
 	}
 }
