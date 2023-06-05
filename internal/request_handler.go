@@ -16,6 +16,10 @@ const (
 
 // OnHttpRequestHeaders is called on every request we intercept with this WASM filter
 // Check out the types.HttpContext interface to see what other callbacks you can override
+//
+// Note: Parameters are not needed here, but a brief description:
+//   - numHeaders = fairly self-explanatory, the number of request headers
+//   - endOfStream = only set to false when there is a request body (e.g. in a POST/PATCH/PUT request)
 func (r *RequestHandler) OnHttpRequestHeaders(_ int, _ bool) types.Action {
 	proxywasm.LogInfof("WASM plugin Handling request")
 
