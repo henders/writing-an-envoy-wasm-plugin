@@ -2,4 +2,4 @@
 
 # Envoy WASM Plugin
 For retrieving JWTs for service-to-service API requests. 
-This code matches Part 3 of the `Writing an Istio WASM Plugin in Go for migrating 100s of services to new auth strategy` Medium article.
+This code matches Part 4 of the `Writing an Istio WASM Plugin in Go for migrating 100s of services to new auth strategy` Medium article.

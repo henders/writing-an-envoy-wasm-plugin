@@ -13,6 +13,7 @@ const (
 type AuthClient struct {
 	XRequestID string
 	Conf       *Config
+	Metrics    *Metrics
 }
 
 func (d *AuthClient) RequestJWT(origReqHeaders map[string]string) {
@@ -67,6 +68,7 @@ func (d *AuthClient) authCallback(_, _, _ int) {
 
 	// Convert to map to make it easier to get specific headers
 	authResponseHeaders := headerArrayToMap(headers)
+	d.Metrics.Increment("auth_requests", [][2]string{{"response_code", authResponseHeaders[":status"]}})
 
 	// Note we're using `:status` instead of just `status`. This is the same for any HTTP-transport-specific headers like ':method', ':path', ':authority', ...
 	// You don't need the ':' prefix for headers like 'user-agent', 'accept, ...
