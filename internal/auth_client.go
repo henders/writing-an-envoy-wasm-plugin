@@ -12,6 +12,7 @@ const (
 
 type AuthClient struct {
 	XRequestID string
+	Conf       *Config
 }
 
 func (d *AuthClient) RequestJWT(origReqHeaders map[string]string) {
@@ -19,17 +20,17 @@ func (d *AuthClient) RequestJWT(origReqHeaders map[string]string) {
 
 	// Now actually call the Auth Service.
 	_, err := proxywasm.DispatchHttpCall(
-		"outbound|8000||httpbin.default.svc.cluster.local",
+		d.Conf.AuthClusterName,
 		[][2]string{
 			{"accept", "*/*"},
-			{":authority", "httpbin.default.svc.cluster.local"},
+			{":authority", d.Conf.AuthAuthority},
 			{":method", "GET"},
 			{":path", "/base64/RkFLRV9KV1QK"},        // get Httpbin to return some fake data
 			{AuthHeader, origReqHeaders[AuthHeader]}, // Copy auth header from original request to auth against
 		},
 		nil,
 		nil,
-		150,
+		d.Conf.AuthTimeout,
 		d.authCallback,
 	)
 	if err != nil {
