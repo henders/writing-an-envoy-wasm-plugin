@@ -7,16 +7,14 @@ import (
 )
 
 type Metrics struct {
-	counters   map[string]proxywasm.MetricCounter
-	histograms map[string]proxywasm.MetricHistogram
+	counters map[string]proxywasm.MetricCounter
 }
 
 const MetricPrefix = "envoy_wasm_auth_plugin"
 
 func NewMetrics() *Metrics {
 	return &Metrics{
-		counters:   make(map[string]proxywasm.MetricCounter),
-		histograms: make(map[string]proxywasm.MetricHistogram),
+		counters: make(map[string]proxywasm.MetricCounter),
 	}
 }
 
@@ -26,14 +24,6 @@ func (m *Metrics) Increment(name string, tags [][2]string) {
 		m.counters[fullName] = proxywasm.DefineCounterMetric(fullName)
 	}
 	m.counters[fullName].Increment(1)
-}
-
-func (m *Metrics) Histogram(name string, tags [][2]string, value uint64) {
-	fullName := metricName(name, tags)
-	if _, exists := m.histograms[fullName]; !exists {
-		m.histograms[fullName] = proxywasm.DefineHistogramMetric(fullName)
-	}
-	m.histograms[fullName].Record(value)
 }
 
 func metricName(name string, tags [][2]string) string {
