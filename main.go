@@ -2,7 +2,6 @@ package main
 
 import (
 	"envoyfilter/internal"
-
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
 )

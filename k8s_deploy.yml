@@ -10,4 +10,4 @@ spec:
   selector:
     matchLabels:
       app: helloworld
-  url: oci://docker.io/shender/wasmplugin:v1
+  url: oci://docker.io/shender/wasmplugin:v2
