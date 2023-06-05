@@ -62,7 +62,7 @@ func TestRequestContext_OnHttpRequestHeaders(t *testing.T) {
 			require.Equal(t, tt.wantResponse, action)
 			require.Equal(t, tt.wantHeaders, host.GetCurrentRequestHeaders(contextID))
 			if tt.wantAuthCall {
-				// Verify Doorman is called.
+				// Verify auth service is called.
 				require.Equal(t, 1, len(host.GetCalloutAttributesFromContext(contextID)))
 			} else {
 				require.Equal(t, 0, len(host.GetCalloutAttributesFromContext(contextID)))
