@@ -9,12 +9,12 @@ spec:
     - mode: SERVER
   pluginConfig:
     auth_authority: httpbin.default.svc.cluster.local
-    auth_cluster_name: outbound|80||httpbin.default.svc.cluster.local
+    auth_cluster_name: outbound|8000||httpbin.default.svc.cluster.local
     auth_timeout_ms: 150
   selector:
     matchLabels:
       app: helloworld
-  url: oci://docker.io/shender/wasmplugin:v1
+  url: oci://docker.io/shender/wasmplugin:v5
   vmConfig:
     env:
       - name: POD_NAMESPACE

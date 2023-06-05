@@ -11,17 +11,17 @@ func TestNewConfig(t *testing.T) {
 	tests := []struct {
 		name         string
 		pluginConfig string
-		want         Config
+		want         *Config
 	}{
 		{
-			name: "reads auth Settings",
+			name: "reads Auth Settings",
 			pluginConfig: `
 			{
-				"auth_cluster_name": "auth",
 				"auth_authority": "auth",
+				"auth_cluster_name": "auth",
 				"auth_timeout_ms": 5
 			}`,
-			want: Config{
+			want: &Config{
 				AuthClusterName: "auth",
 				AuthAuthority:   "auth",
 				AuthTimeout:     5,
@@ -29,21 +29,16 @@ func TestNewConfig(t *testing.T) {
 			},
 		},
 		{
-			name: "reads service-specific settings",
+			name: "reads Auth Settings with default timeout",
 			pluginConfig: `
 			{
-				"auth_cluster_name": "auth",
 				"auth_authority": "auth",
-				"auth_timeout_ms": 5,
-				"example-service": {
-					"enabled": true,
-					"lightweight_system_auth": true
-				}
+				"auth_cluster_name": "auth"
 			}`,
-			want: Config{
+			want: &Config{
 				AuthClusterName: "auth",
 				AuthAuthority:   "auth",
-				AuthTimeout:     5,
+				AuthTimeout:     1000,
 				Namespace:       "example-service",
 			},
 		},

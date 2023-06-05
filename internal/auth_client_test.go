@@ -9,7 +9,7 @@ import (
 
 func TestAuthClient_RequestJWT(t *testing.T) {
 	vmContext := InitPlugin(t)
-	t.Run("call auth with auth header", func(t *testing.T) {
+	t.Run("call auth service with authorization header", func(t *testing.T) {
 		// Initialize new plugin
 		host, contextID, reset := NewContext(t, vmContext)
 		defer reset()
@@ -19,19 +19,30 @@ func TestAuthClient_RequestJWT(t *testing.T) {
 			{AuthHeader, "MAC ts....."},
 		}, true)
 
-		// Verify Auth Service is called
+		// Verify Auth Service is called with DispatchHttpCall
 		require.Equal(t, 1, len(host.GetCalloutAttributesFromContext(contextID)))
 		// At this point, none of dispatched callouts received response therefore the current status must be paused.
 		require.Equal(t, types.ActionPause, host.GetCurrentHttpStreamAction(contextID))
 
-		// Now have mocked Auth Service respond to handler
+		// Get the handle to the DispatchHttpCall request
 		callout := host.GetCalloutAttributesFromContext(contextID)[0]
-		host.CallOnHttpCallResponse(callout.CalloutID, [][2]string{{":status", "200"}}, nil, []byte("MY_JWT"))
 
-		// Verify JWT was added to original request headers
+		// Validate we sent the Auth Service the right headers
+		require.Equal(t, [][2]string{
+			{"accept", "*/*"},
+			{":authority", "auth"},
+			{":method", "GET"},
+			{":path", "/base64/RkFLRV9KV1QK"},
+			{AuthHeader, "MAC ts....."},
+		}, callout.Headers)
+
+		// Now have Auth Service respond to handler
+		host.CallOnHttpCallResponse(callout.CalloutID, [][2]string{{":status", "200"}}, nil, []byte("test JWT"))
+
+		// Verify the JWT from the above request was added to the original request's headers
 		require.Equal(t, [][2]string{
 			{AuthHeader, "MAC ts....."},
-			{"x-auth-jwt", "MY_JWT"},
+			{"x-auth-jwt", "test JWT"},
 		}, host.GetCurrentRequestHeaders(contextID))
 		// The request should have been marked as continued now after processing Auth response
 		require.Equal(t, types.ActionContinue, host.GetCurrentHttpStreamAction(contextID))

@@ -25,7 +25,7 @@ func TestRequestContext_OnHttpRequestHeaders(t *testing.T) {
 			wantResponse: types.ActionContinue,
 		},
 		{
-			name: "No auth or mTLS headers",
+			name: "No auth headers",
 			headers: [][2]string{
 				{XRequestIdHeader, "abc"},
 			},
@@ -35,7 +35,7 @@ func TestRequestContext_OnHttpRequestHeaders(t *testing.T) {
 			wantResponse: types.ActionContinue,
 		},
 		{
-			name: "authorization header present with no mTLS headers",
+			name: "authorization header present",
 			headers: [][2]string{
 				{XRequestIdHeader, "abc"},
 				{AuthHeader, "MAC <some mac digest>"},
@@ -62,7 +62,7 @@ func TestRequestContext_OnHttpRequestHeaders(t *testing.T) {
 			require.Equal(t, tt.wantResponse, action)
 			require.Equal(t, tt.wantHeaders, host.GetCurrentRequestHeaders(contextID))
 			if tt.wantAuthCall {
-				// Verify Auth is called.
+				// Verify auth service is called.
 				require.Equal(t, 1, len(host.GetCalloutAttributesFromContext(contextID)))
 			} else {
 				require.Equal(t, 0, len(host.GetCalloutAttributesFromContext(contextID)))

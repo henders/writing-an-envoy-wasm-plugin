@@ -11,8 +11,8 @@ import (
 
 const DefaultTestConfig = `
 {
-	"auth_cluster_name": "auth", 
-	"auth_authority": "auth", 
+	"auth_authority": "auth",
+	"auth_cluster_name": "auth",
 	"auth_timeout_ms": 5
 }`
 

@@ -4,42 +4,44 @@ import (
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const (
 	XAuthServiceAuthResponseJWTHeader = "x-auth-jwt"
-	AuthClusterName                   = "outbound|8000||httpbin.default.svc.cluster.local"
-	AuthTimeout                       = time.Second
 )
 
 type AuthClient struct {
-	Conf       Config
-	Metrics    *Metrics
 	XRequestID string
+	Conf       *Config
+	Metrics    *Metrics
 }
 
 func (d *AuthClient) RequestJWT(origReqHeaders map[string]string) {
-	proxywasm.LogInfof("%s: Requesting JWT: %s", d.XRequestID, AuthClusterName)
-
-	headersToSend := [][2]string{
-		{"accept", "*/*"},
-		{":authority", "httpbin.default.svc.cluster.local"},
-		{":method", "GET"},
-		{":path", "/base64/RkFLRV9KV1QK"},        // get Httpbin to return some fake data
-		{AuthHeader, origReqHeaders[AuthHeader]}, // Copy auth header from original request to auth against
-	}
+	proxywasm.LogInfof("%s: Requesting JWT from Auth Service", d.XRequestID)
 
 	// Now actually call the Auth Service.
-	_, err := proxywasm.DispatchHttpCall(AuthClusterName, headersToSend, nil, nil, uint32(AuthTimeout.Milliseconds()), d.authResponse)
+	_, err := proxywasm.DispatchHttpCall(
+		d.Conf.AuthClusterName,
+		[][2]string{
+			{"accept", "*/*"},
+			{":authority", d.Conf.AuthAuthority},
+			{":method", "GET"},
+			{":path", "/base64/RkFLRV9KV1QK"},        // get Httpbin to return some fake data
+			{AuthHeader, origReqHeaders[AuthHeader]}, // Copy auth header from original request to auth against
+		},
+		nil,
+		nil,
+		d.Conf.AuthTimeout,
+		d.authCallback,
+	)
 	if err != nil {
 		proxywasm.LogCriticalf("%s: failed to call AuthService: %v", d.XRequestID, err)
+		// We want to resume the intercepted request even if we couldn't get an authentication header
 		_ = proxywasm.ResumeHttpRequest()
-		d.Metrics.Increment("auth_called", [][2]string{{"result", "failed"}})
 	}
 }
 
-func (d *AuthClient) authResponse(_, _, _ int) {
+func (d *AuthClient) authCallback(_, _, _ int) {
 	proxywasm.LogInfof("%s: Got response from AuthService", d.XRequestID)
 	responseStatus := uint32(500)
 
@@ -66,6 +68,7 @@ func (d *AuthClient) authResponse(_, _, _ int) {
 
 	// Convert to map to make it easier to get specific headers
 	authResponseHeaders := headerArrayToMap(headers)
+	d.Metrics.Increment("auth_requests", [][2]string{{"response_code", authResponseHeaders[":status"]}})
 
 	// Note we're using `:status` instead of just `status`. This is the same for any HTTP-transport-specific headers like ':method', ':path', ':authority', ...
 	// You don't need the ':' prefix for headers like 'user-agent', 'accept, ...
@@ -84,7 +87,6 @@ func (d *AuthClient) authResponse(_, _, _ int) {
 			return
 		}
 		responseStatus = 200
-		d.Metrics.Increment("auth_called", [][2]string{{"result", "success"}})
 		return
 	}
 
@@ -95,5 +97,4 @@ func (d *AuthClient) authResponse(_, _, _ int) {
 		}
 	}
 	proxywasm.LogErrorf("%s: AuthService failed this request - status:%s", d.XRequestID, authResponseHeaders[":status"])
-	d.Metrics.Increment("auth_called", [][2]string{{"result", "failed"}})
 }
